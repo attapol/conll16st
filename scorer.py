@@ -1,4 +1,4 @@
-"""CONLL Shared Task 2016 Scorer
+"""The Official CONLL 2016 Shared Task Scorer
 
 """
 import argparse
