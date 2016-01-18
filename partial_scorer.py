@@ -7,6 +7,7 @@ import json
 
 import validator
 import aligner
+import scorer
 
 from confusion_matrix import ConfusionMatrix, Alphabet
 from conn_head_mapper import ConnHeadMapper
@@ -14,6 +15,7 @@ from conn_head_mapper import ConnHeadMapper
 def partial_evaluate(gold_list, predicted_list, partial_match_cutoff):
     """Evaluate the parse output with partial matching for arguments
     """
+    print 'Aligning relations - This will time out after 120 seconds'
     arg1_alignment, arg2_alignment, relation_alignment = \
         aligner.align_relations(gold_list, predicted_list, partial_match_cutoff)
     arg1_match_prf, arg2_match_prf, total_match_prf = \
@@ -22,10 +24,19 @@ def partial_evaluate(gold_list, predicted_list, partial_match_cutoff):
         evaluate_rel_arg_whole_rel(relation_alignment, partial_match_cutoff)
     sense_cm = evaluate_sense(relation_alignment)
 
-    print arg1_match_prf, arg2_match_prf
-    print total_match_prf
-    print entire_relation_match_prf
+    print 'Arg 1 extractor (partial matching)                     : Precision %1.4f Recall %1.4f F1 %1.4f' % arg1_match_prf
+    print 'Arg 2 extractor (partial matching)                     : Precision %1.4f Recall %1.4f F1 %1.4f' % arg2_match_prf
+
+    print 'Concatenated Arg 1 Arg 2 extractor (partial matching)  : Precision %1.4f Recall %1.4f F1 %1.4f' % total_match_prf
+
+    print 'Conjunctive Arg 1 & Arg 2 extractor (partial matching) : Precision %1.4f Recall %1.4f F1 %1.4f' % entire_relation_match_prf
+
+    print 'Sense classification--------------'
     sense_cm.print_summary()
+    print 'Overall parser performance (cutoff = %s)--------------' % partial_match_cutoff
+    precision, recall, f1 = sense_cm.compute_micro_average_f1()
+    print 'Precision %1.4f Recall %1.4f F1 %1.4f' % (precision, recall, f1)
+
     return arg1_match_prf, arg2_match_prf, entire_relation_match_prf, \
         sense_cm.compute_micro_average_f1()
 
@@ -144,13 +155,13 @@ def evaluate_sense(relation_pairs):
             sense_cm.add(predicted_sense, ConfusionMatrix.NEGATIVE_CLASS)
         elif p_relation is None:
             gold_sense = g_relation['Sense'][0]
-            if gold_sense in validator.SENSES:
-                sense_cm.add(ConfusionMatrix.NEGATIVE_CLASS, gold_sense)
+            #if gold_sense in validator.SENSES:
+            sense_cm.add(ConfusionMatrix.NEGATIVE_CLASS, gold_sense)
         else:
             predicted_sense = p_relation['Sense'][0]
             gold_sense = g_relation['Sense'][0]
-            if gold_sense in validator.SENSES:
-                sense_cm.add(predicted_sense, gold_sense)
+            #if gold_sense in validator.SENSES:
+            sense_cm.add(predicted_sense, gold_sense)
     return sense_cm
 
 
@@ -162,7 +173,21 @@ def main():
     args = parser.parse_args()
     gold_list = [json.loads(x) for x in open(args.gold)]
     predicted_list = [json.loads(x) for x in open(args.predicted)]
+    print '\n================================================'
+    print 'Evaluation for all discourse relations'
     partial_evaluate(gold_list, predicted_list, 0.7)
+
+    print '\n================================================'
+    print 'Evaluation for explicit discourse relations only'
+    explicit_gold_list = [x for x in gold_list if x['Type'] == 'Explicit']
+    explicit_predicted_list = [x for x in predicted_list if x['Type'] == 'Explicit']
+    partial_evaluate(explicit_gold_list, explicit_predicted_list, 0.7)
+
+    print '\n================================================'
+    print 'Evaluation for non-explicit discourse relations only (Implicit, EntRel, AltLex)'
+    non_explicit_gold_list = [x for x in gold_list if x['Type'] != 'Explicit']
+    non_explicit_predicted_list = [x for x in predicted_list if x['Type'] != 'Explicit']
+    partial_evaluate(non_explicit_gold_list, non_explicit_predicted_list, 0.7)
 
 if __name__ == '__main__':
     main()

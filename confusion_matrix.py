@@ -147,24 +147,32 @@ class ConfusionMatrix(object):
         print matrix_to_string(rows, header)
 
     def print_summary(self):
-        correct = 0
 
         precision = numpy.zeros(self.alphabet.size())
         recall = numpy.zeros(self.alphabet.size())
         f1 = numpy.zeros(self.alphabet.size())
+        
+        max_len = 0
+        for i in xrange(self.alphabet.size()):
+            label = self.alphabet.get_label(i)
+            if label != self.NEGATIVE_CLASS and len(label) > max_len:
+                max_len = len(label)
 
         lines = []
+        correct = 0.0
         # compute precision, recall, and f1
         for i in xrange(self.alphabet.size()):
             precision[i], recall[i], f1[i] = self.get_prf_for_i(i)
             correct += self.matrix[i,i]
             label = self.alphabet.get_label(i)
             if label != self.NEGATIVE_CLASS:
-                lines.append( '%s \tprecision %1.4f \trecall %1.4f\t F1 %1.4f' %\
-                    (label, precision[i], recall[i], f1[i]))
+                space = ' ' * (max_len - len(label) + 1)
+                lines.append( '%s%sprecision %1.4f\trecall %1.4f\tF1 %1.4f' %\
+                    (label, space, precision[i], recall[i], f1[i]))
         precision, recall, f1 = self.compute_micro_average_f1()
-        lines.append( '* Average precision %1.4f \t recall %1.4f\t F1 %1.4f' %\
-            (numpy.mean(precision), numpy.mean(recall), numpy.mean(f1)))
+        space = ' ' * (max_len - 14 + 1)
+        lines.append('*Micro-Average%sprecision %1.4f\trecall %1.4f\tF1 %1.4f' %\
+            (space, numpy.mean(precision), numpy.mean(recall), numpy.mean(f1)))
         lines.sort()
         print '\n'.join(lines)
 

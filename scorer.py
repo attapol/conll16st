@@ -14,20 +14,13 @@ def evaluate(gold_list, predicted_list):
     arg1_cm, arg2_cm, rel_arg_cm = evaluate_argument_extractor(gold_list, predicted_list)
     sense_cm = evaluate_sense(gold_list, predicted_list)
 
-    print 'Explicit connectives--------------'
-    print 'Precision %1.4f Recall %1.4f F1 %1.4f' % connective_cm.get_prf('yes')
-
-    print 'Arg 1 extractor--------------'
-    print 'Precision %1.4f Recall %1.4f F1 %1.4f' % arg1_cm.get_prf('yes')
-    print 'Arg 2 extractor--------------'
-    print 'Precision %1.4f Recall %1.4f F1 %1.4f' % arg2_cm.get_prf('yes')
-    print 'Arg1 Arg2 extractor combined--------------'
-    print 'Precision %1.4f Recall %1.4f F1 %1.4f' % rel_arg_cm.get_prf('yes')
+    print 'Explicit connectives         : Precision %1.4f Recall %1.4f F1 %1.4f' % connective_cm.get_prf('yes')
+    print 'Arg 1 extractor              : Precision %1.4f Recall %1.4f F1 %1.4f' % arg1_cm.get_prf('yes')
+    print 'Arg 2 extractor              : Precision %1.4f Recall %1.4f F1 %1.4f' % arg2_cm.get_prf('yes')
+    print 'Arg1 Arg2 extractor combined : Precision %1.4f Recall %1.4f F1 %1.4f' % rel_arg_cm.get_prf('yes')
     print 'Sense classification--------------'
     sense_cm.print_summary()
     print 'Overall parser performance --------------'
-    precision, recall, f1 = evaluate_relation(gold_list, predicted_list)
-    print 'Precision %1.4f Recall %1.4f F1 %1.4f' % (precision, recall, f1)
     precision, recall, f1 = sense_cm.compute_micro_average_f1()
     print 'Precision %1.4f Recall %1.4f F1 %1.4f' % (precision, recall, f1)
     return connective_cm, arg1_cm, arg2_cm, rel_arg_cm, sense_cm, precision, recall, f1
@@ -134,43 +127,6 @@ def connective_head_matching(gold_raw_connective, predicted_raw_connective):
         conn_head, indices = CONN_HEAD_MAPPER.map_raw_connective(gold_tokens)
         gold_head_connective_indices = [gold_token_indices[x] for x in indices]
         return set(gold_head_connective_indices).issubset(set(predicted_token_list))
-
-
-def evaluate_relation(gold_list, predicted_list):
-    """Evaluate relation accuracy
-
-    """
-    gold_to_predicted_map, predicted_to_gold_map = \
-            _link_gold_predicted(gold_list, predicted_list, spans_exact_matching)
-    correct = 0
-    for i, gold_relation in enumerate(gold_list):
-        if i in gold_to_predicted_map:
-            predicted_sense = gold_to_predicted_map[i]['Sense'][0]
-            if gold_relation['Type'] == 'Explicit':
-                predicted_connective = (0, gold_to_predicted_map[i]['Connective']['TokenList'])
-                gold_connective = (0, gold_relation['Connective']['TokenList'])
-                if predicted_sense in gold_relation['Sense'] and \
-                        span_exact_matching(gold_connective, predicted_connective):
-                    correct += 1
-            else:
-                if predicted_sense in gold_relation['Sense']:
-                    correct += 1
-
-    # compute precision, recall and f1 score
-    if len(predicted_list) == 0:
-        precision = 1.0
-    else:
-        precision = correct / len(predicted_list)
-    if len(gold_list) == 0:
-        recall = 1.0
-    else:
-        recall = correct / len(gold_list)
-    if precision + recall != 0.0:
-        f1 = 2.0 * precision * recall / (precision + recall)
-    else:
-        f1 = 0.0
-
-    return (precision, recall, f1)
 
 def evaluate_sense(gold_list, predicted_list):
     """Evaluate sense classifier
@@ -297,5 +253,4 @@ def main():
 
 if __name__ == '__main__':
     main()
-
 
