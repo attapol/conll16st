@@ -140,7 +140,7 @@ def evaluate_relation(gold_list, predicted_list):
     """
     gold_to_predicted_map, predicted_to_gold_map = \
             _link_gold_predicted(gold_list, predicted_list, spans_exact_matching)
-    correct = 0.0
+    correct = 0
     for i, gold_relation in enumerate(gold_list):
         if i in gold_to_predicted_map:
             predicted_sense = gold_to_predicted_map[i]['Sense'][0]
@@ -153,16 +153,20 @@ def evaluate_relation(gold_list, predicted_list):
             else:
                 if predicted_sense in gold_relation['Sense']:
                     correct += 1
-    if len(predicted_list) == 0:
-        precision = 1
-    else:
-        precision = correct/len(predicted_list)
-    recall = correct/len(gold_list)
 
-    if precision + recall != 0:
-        f1 = 2 * precision * recall / (precision + recall)
+    # compute precision, recall and f1 score
+    if len(predicted_list) == 0:
+        precision = 1.0
     else:
-        f1 = 0
+        precision = correct / len(predicted_list)
+    if len(gold_list) == 0:
+        recall = 1.0
+    else:
+        recall = correct / len(gold_list)
+    if precision + recall != 0.0:
+        f1 = 2.0 * precision * recall / (precision + recall)
+    else:
+        f1 = 0.0
 
     return (precision, recall, f1)
 
