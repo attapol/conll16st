@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 """The Official CONLL 2016 Shared Task Scorer
 
 """

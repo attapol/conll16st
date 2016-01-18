@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 """The evaluator used on the TIRA evaluation plaform for CoNLL 2016 Shared Task
 
 """

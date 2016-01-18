@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 """Sample Discourse Parser ready for evaluation on TIRA evaluation system
 
 The parse should take three arguments
