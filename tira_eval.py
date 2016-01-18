@@ -47,7 +47,7 @@ def main(args):
     input_run = args[2]
     output_dir = args[3]
 
-    gold_relations = [json.loads(x) for x in open('%s/pdtb-data.json' % input_dataset)]
+    gold_relations = [json.loads(x) for x in open('%s/relations.json' % input_dataset)]
     predicted_relations = [json.loads(x) for x in open('%s/output.json' % input_run)]
     all_correct = validate_relation_list(predicted_relations)
     if not all_correct:
