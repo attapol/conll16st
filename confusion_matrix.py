@@ -6,6 +6,7 @@ useful for developing and improving a classifier
 import numpy
 import json
 
+
 class ConfusionMatrix(object):
     """Confusion matrix for evaluating a classifier
 
@@ -64,6 +65,41 @@ class ConfusionMatrix(object):
         for p, t in zip(predictions, true_answers):
             self.add(p, t)
 
+    def get_prf_for_i(self, i):
+        """Compute precision, recall, and f1 score for a given index."""
+
+        if sum(self.matrix[i,:]) == 0:
+            precision = 1.0
+        else:
+            precision = self.matrix[i,i] / sum(self.matrix[i,:])
+        if sum(self.matrix[:,i]) == 0:
+            recall = 1.0
+        else:
+            recall = self.matrix[i,i] / sum(self.matrix[:,i])
+        if precision + recall != 0.0:
+            f1 = 2.0 * precision * recall / (precision + recall)
+        else:
+            f1 = 0.0
+        return (precision, recall, f1)
+
+    def get_prf_for_all(self):
+        """Compute precision, recall, and f1 score for all indexes."""
+
+        precision = numpy.zeros(self.alphabet.size())
+        recall = numpy.zeros(self.alphabet.size())
+        f1 = numpy.zeros(self.alphabet.size())
+
+        # compute precision, recall, and f1
+        for i in xrange(self.alphabet.size()):
+            precision[i], recall[i], f1[i] = self.get_prf_for_i(i)
+
+        return (precision, recall, f1)
+
+    def get_prf(self, class_name):
+        """Compute precision, recall, and f1 score for a given class. """
+        i = self.alphabet.get_index(class_name)
+        return self.get_prf_for_i(i)
+
     def compute_micro_average_f1(self):
         total_correct = 0.0
         for i in xrange(self.alphabet.size()):
@@ -74,50 +110,29 @@ class ConfusionMatrix(object):
         total_gold = numpy.sum([x for i, x in enumerate(self.matrix.sum(0)) \
             if negative_index == -1 or i != negative_index])
 
-        precision = total_correct / total_predicted
-        recall = total_correct / total_gold
-        f1_score = 2.0 * (precision * recall) / (precision + recall) \
-            if precision + recall != 0 else 0.0
+        if total_predicted == 0:
+            precision = 1.0
+        else:
+            precision = total_correct / total_predicted
+        if total_gold == 0:
+            recall = 1.0
+        else:
+            recall = total_correct / total_gold
+        if precision + recall != 0.0:
+            f1_score = 2.0 * (precision * recall) / (precision + recall)
+        else:
+            f1_score = 0.0
         return (round(precision, 4), round(recall, 4), round(f1_score,4))
 
     def compute_average_f1(self):
-        precision = numpy.zeros(self.alphabet.size())
-        recall = numpy.zeros(self.alphabet.size())
-        f1 = numpy.zeros(self.alphabet.size())
-
-        # computing precision, recall, and f1
-        for i in xrange(self.alphabet.size()):
-            precision[i] = self.matrix[i,i] / sum(self.matrix[i,:])
-            recall[i] = self.matrix[i,i] / sum(self.matrix[:,i])
-            if precision[i] + recall[i] != 0:
-                f1[i] = 2 * precision[i] * recall[i] / (precision[i] + recall[i])
-            else:
-                f1[i] = 0
+        precision, recall, f1 = self.get_prf_for_all()
         return numpy.mean(f1)
 
     def compute_average_prf(self):
-        precision = numpy.zeros(self.alphabet.size())
-        recall = numpy.zeros(self.alphabet.size())
-        f1 = numpy.zeros(self.alphabet.size())
-
-        # computing precision, recall, and f1
-        for i in xrange(self.alphabet.size()):
-            if sum(self.matrix[i,:]) == 0:
-                precision[i] = 1.0
-            else:
-                precision[i] = self.matrix[i,i] / sum(self.matrix[i,:])
-            if sum(self.matrix[:,i]) == 0:
-                recall[i] = 1.0
-            else:
-                recall[i] = self.matrix[i,i] / sum(self.matrix[:,i])
-            if precision[i] + recall[i] != 0:
-                f1[i] = 2 * precision[i] * recall[i] / (precision[i] + recall[i])
-            else:
-                f1[i] = 0
+        precision, recall, f1 = self.get_prf_for_all()
         return (round(numpy.mean(precision), 4),
                 round(numpy.mean(recall), 4),
                 round(numpy.mean(f1), 4))
-
 
     def print_matrix(self):
         num_classes = self.alphabet.size()
@@ -131,23 +146,6 @@ class ConfusionMatrix(object):
         print "row = predicted, column = truth"
         print matrix_to_string(rows, header)
 
-    def get_prf(self, class_name):
-        """Compute precision, recall, and f1 score for a given class
-
-        """
-        index = self.alphabet.get_index(class_name)
-        if sum(self.matrix[index, :]) == 0:
-            recall = 1.0
-        else:
-            recall = self.matrix[index, index] / sum(self.matrix[index, :])
-        if sum(self.matrix[:, index]) == 0:
-            precision = 1.0
-        else:
-            precision = self.matrix[index, index] / sum(self.matrix[:, index])
-        f1 = (2 * precision * recall) / (precision + recall)
-        return (precision, recall, f1)
-
-
     def print_summary(self):
         correct = 0
 
@@ -156,20 +154,9 @@ class ConfusionMatrix(object):
         f1 = numpy.zeros(self.alphabet.size())
 
         lines = []
-        # computing precision, recall, and f1
+        # compute precision, recall, and f1
         for i in xrange(self.alphabet.size()):
-            if sum(self.matrix[i,:]) == 0:
-                precision[i] = 1.0
-            else:
-                precision[i] = self.matrix[i,i] / sum(self.matrix[i,:])
-            if sum(self.matrix[:,i]) == 0:
-                recall[i] = 1.0
-            else:
-                recall[i] = self.matrix[i,i] / sum(self.matrix[:,i])
-            if precision[i] + recall[i] != 0:
-                f1[i] = 2 * precision[i] * recall[i] / (precision[i] + recall[i])
-            else:
-                f1[i] = 0
+            precision[i], recall[i], f1[i] = self.get_prf_for_i(i)
             correct += self.matrix[i,i]
             label = self.alphabet.get_label(i)
             if label != self.NEGATIVE_CLASS:
