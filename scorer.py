@@ -28,6 +28,8 @@ def evaluate(gold_list, predicted_list):
     print 'Overall parser performance --------------'
     precision, recall, f1 = evaluate_relation(gold_list, predicted_list)
     print 'Precision %1.4f Recall %1.4f F1 %1.4f' % (precision, recall, f1)
+    precision, recall, f1 = sense_cm.compute_micro_average_f1()
+    print 'Precision %1.4f Recall %1.4f F1 %1.4f' % (precision, recall, f1)
     return connective_cm, arg1_cm, arg2_cm, rel_arg_cm, sense_cm, precision, recall, f1
 
 
@@ -169,13 +171,15 @@ def evaluate_relation(gold_list, predicted_list):
 def evaluate_sense(gold_list, predicted_list):
     """Evaluate sense classifier
 
-    The label 'no' is for the relations that are missed by the system
+    The label ConfusionMatrix.NEGATIVE_CLASS is for the relations 
+    that are missed by the system
     because the arguments don't match any of the gold relations.
     """
     sense_alphabet = Alphabet()
     for relation in gold_list:
         sense_alphabet.add(relation['Sense'][0])
-    sense_alphabet.add('no')
+    sense_alphabet.add(ConfusionMatrix.NEGATIVE_CLASS)
+
     sense_cm = ConfusionMatrix(sense_alphabet)
     gold_to_predicted_map, predicted_to_gold_map = \
             _link_gold_predicted(gold_list, predicted_list, spans_exact_matching)
@@ -187,17 +191,17 @@ def evaluate_sense(gold_list, predicted_list):
                 sense_cm.add(predicted_sense, predicted_sense)
             else:
                 if not sense_cm.alphabet.has_label(predicted_sense):
-                    predicted_sense = 'no'
+                    predicted_sense = ConfusionMatrix.NEGATIVE_CLASS
                 sense_cm.add(predicted_sense, gold_relation['Sense'][0])
         else:
-            sense_cm.add('no', gold_relation['Sense'][0])
+            sense_cm.add(ConfusionMatrix.NEGATIVE_CLASS, gold_relation['Sense'][0])
 
     for i, predicted_relation in enumerate(predicted_list):
         if i not in predicted_to_gold_map:
             predicted_sense = predicted_relation['Sense'][0]
             if not sense_cm.alphabet.has_label(predicted_sense):
-                predicted_sense = 'no'
-            sense_cm.add(predicted_sense, 'no')
+                predicted_sense = ConfusionMatrix.NEGATIVE_CLASS
+            sense_cm.add(predicted_sense, ConfusionMatrix.NEGATIVE_CLASS)
     return sense_cm
 
 
@@ -271,14 +275,17 @@ def main():
     args = parser.parse_args()
     gold_list = [json.loads(x) for x in open(args.gold)]
     predicted_list = [json.loads(x) for x in open(args.predicted)]
+    print '\n================================================'
     print 'Evaluation for all discourse relations'
     evaluate(gold_list, predicted_list)
 
+    print '\n================================================'
     print 'Evaluation for explicit discourse relations only'
     explicit_gold_list = [x for x in gold_list if x['Type'] == 'Explicit']
     explicit_predicted_list = [x for x in predicted_list if x['Type'] == 'Explicit']
     evaluate(explicit_gold_list, explicit_predicted_list)
 
+    print '\n================================================'
     print 'Evaluation for non-explicit discourse relations only (Implicit, EntRel, AltLex)'
     non_explicit_gold_list = [x for x in gold_list if x['Type'] != 'Explicit']
     non_explicit_predicted_list = [x for x in predicted_list if x['Type'] != 'Explicit']

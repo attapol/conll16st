@@ -69,9 +69,9 @@ class ConfusionMatrix(object):
         for i in xrange(self.alphabet.size()):
             total_correct += self.matrix[i,i]
         negative_index = self.alphabet.get_index(self.NEGATIVE_CLASS)
-        total_predicted = numpy.sum([x for i, x in enumerate(self.matrix.sum(0)) 
+        total_predicted = numpy.sum([x for i, x in enumerate(self.matrix.sum(1))\
             if negative_index == -1 or i != negative_index])
-        total_gold = numpy.sum([x for i, x in enumerate(self.matrix.sum(1)) 
+        total_gold = numpy.sum([x for i, x in enumerate(self.matrix.sum(0)) \
             if negative_index == -1 or i != negative_index])
 
         precision = total_correct / total_predicted
@@ -172,10 +172,10 @@ class ConfusionMatrix(object):
                 f1[i] = 0
             correct += self.matrix[i,i]
             label = self.alphabet.get_label(i)
-            if label != 'no':
+            if label != self.NEGATIVE_CLASS:
                 lines.append( '%s \tprecision %1.4f \trecall %1.4f\t F1 %1.4f' %\
                     (label, precision[i], recall[i], f1[i]))
-        #lines.append( '* Overall accuracy rate = %f' %(correct / sum(sum(self.matrix[:,:]))))
+        precision, recall, f1 = self.compute_micro_average_f1()
         lines.append( '* Average precision %1.4f \t recall %1.4f\t F1 %1.4f' %\
             (numpy.mean(precision), numpy.mean(recall), numpy.mean(f1)))
         lines.sort()
