@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 """CONLL Shared Task 2016 System output validator
 
 It verifies that each line is
