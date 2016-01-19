@@ -167,11 +167,11 @@ class ConfusionMatrix(object):
             label = self.alphabet.get_label(i)
             if label != self.NEGATIVE_CLASS:
                 space = ' ' * (max_len - len(label) + 1)
-                lines.append( '%s%sprecision %1.4f\trecall %1.4f\tF1 %1.4f' %\
+                lines.append( '%s%s precision %1.4f\trecall %1.4f\tF1 %1.4f' %\
                     (label, space, precision[i], recall[i], f1[i]))
         precision, recall, f1 = self.compute_micro_average_f1()
         space = ' ' * (max_len - 14 + 1)
-        lines.append('*Micro-Average%sprecision %1.4f\trecall %1.4f\tF1 %1.4f' %\
+        lines.append('*Micro-Average%s precision %1.4f\trecall %1.4f\tF1 %1.4f' %\
             (space, numpy.mean(precision), numpy.mean(recall), numpy.mean(f1)))
         lines.sort()
         print '\n'.join(lines)

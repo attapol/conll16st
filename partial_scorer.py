@@ -132,8 +132,14 @@ def compute_prf(total_gold, total_predicted, total_correct):
     Assume binary classification where we are only interested
     in the positive class. In our case, we look at argument extraction.
     """
-    precision = total_correct / total_predicted
-    recall = total_correct / total_gold
+    if total_predicted == 0:
+        precision = 1.0
+    else:
+        precision = total_correct / total_predicted
+    if total_gold == 0:
+        recall = 1.0
+    else:
+        recall = total_correct / total_gold
     f1_score = 2.0 * (precision * recall) / (precision + recall) \
         if precision + recall != 0 else 0.0
     return (round(precision, 4), round(recall, 4), round(f1_score,4))
@@ -155,13 +161,13 @@ def evaluate_sense(relation_pairs):
             sense_cm.add(predicted_sense, ConfusionMatrix.NEGATIVE_CLASS)
         elif p_relation is None:
             gold_sense = g_relation['Sense'][0]
-            #if gold_sense in validator.SENSES:
-            sense_cm.add(ConfusionMatrix.NEGATIVE_CLASS, gold_sense)
+            if gold_sense in validator.EN_SENSES or gold_sense in validator.ZH_SENSES:
+                sense_cm.add(ConfusionMatrix.NEGATIVE_CLASS, gold_sense)
         else:
             predicted_sense = p_relation['Sense'][0]
             gold_sense = g_relation['Sense'][0]
-            #if gold_sense in validator.SENSES:
-            sense_cm.add(predicted_sense, gold_sense)
+            if gold_sense in validator.EN_SENSES or gold_sense in validator.ZH_SENSES:
+                sense_cm.add(predicted_sense, gold_sense)
     return sense_cm
 
 
