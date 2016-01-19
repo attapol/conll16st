@@ -22,7 +22,8 @@ def partial_evaluate(gold_list, predicted_list, partial_match_cutoff):
         evaluate_args(arg1_alignment, arg2_alignment, partial_match_cutoff)
     entire_relation_match_prf = \
         evaluate_rel_arg_whole_rel(relation_alignment, partial_match_cutoff)
-    sense_cm = evaluate_sense(relation_alignment)
+    valid_senses = validator.identify_valid_senses(gold_list)
+    sense_cm = evaluate_sense(relation_alignment, valid_senses)
 
     print 'Arg 1 extractor (partial matching)                     : Precision %1.4f Recall %1.4f F1 %1.4f' % arg1_match_prf
     print 'Arg 2 extractor (partial matching)                     : Precision %1.4f Recall %1.4f F1 %1.4f' % arg2_match_prf
@@ -145,11 +146,13 @@ def compute_prf(total_gold, total_predicted, total_correct):
     return (round(precision, 4), round(recall, 4), round(f1_score,4))
 
 
-def evaluate_sense(relation_pairs):
+def evaluate_sense(relation_pairs, valid_senses):
     sense_alphabet = Alphabet()
     for g_relation, _ in relation_pairs:
         if g_relation is not None:
-            sense_alphabet.add(g_relation['Sense'][0])
+            sense = g_relation['Sense'][0]
+            if sense in valid_senses:
+                sense_alphabet.add(sense)
     sense_alphabet.add(ConfusionMatrix.NEGATIVE_CLASS)
     sense_alphabet.growing = False
 
@@ -161,12 +164,12 @@ def evaluate_sense(relation_pairs):
             sense_cm.add(predicted_sense, ConfusionMatrix.NEGATIVE_CLASS)
         elif p_relation is None:
             gold_sense = g_relation['Sense'][0]
-            if gold_sense in validator.EN_SENSES or gold_sense in validator.ZH_SENSES:
+            if gold_sense in valid_senses:
                 sense_cm.add(ConfusionMatrix.NEGATIVE_CLASS, gold_sense)
         else:
             predicted_sense = p_relation['Sense'][0]
             gold_sense = g_relation['Sense'][0]
-            if gold_sense in validator.EN_SENSES or gold_sense in validator.ZH_SENSES:
+            if gold_sense in valid_senses:
                 sense_cm.add(predicted_sense, gold_sense)
     return sense_cm
 

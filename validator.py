@@ -138,6 +138,13 @@ def identify_language(g_relation_list):
     else:
         return 'zh'
 
+def identify_valid_senses(g_relation_list):
+    language = identify_language(g_relation_list)
+    if language == 'en':
+        return EN_SENSES
+    else:
+        return ZH_SENSES
+
     
 if __name__ == '__main__':
     parser = argparse.ArgumentParser('System output format validator')

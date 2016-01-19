@@ -8,6 +8,7 @@ import json
 
 from confusion_matrix import ConfusionMatrix, Alphabet
 from conn_head_mapper import ConnHeadMapper
+import validator
 
 CONN_HEAD_MAPPER = ConnHeadMapper()
 
@@ -138,8 +139,12 @@ def evaluate_sense(gold_list, predicted_list):
     because the arguments don't match any of the gold relations.
     """
     sense_alphabet = Alphabet()
+    valid_senses = validator.identify_valid_senses(gold_list)
     for relation in gold_list:
-        sense_alphabet.add(relation['Sense'][0])
+        sense = relation['Sense'][0]
+        if sense in valid_senses:
+            sense_alphabet.add(sense)
+
     sense_alphabet.add(ConfusionMatrix.NEGATIVE_CLASS)
 
     sense_cm = ConfusionMatrix(sense_alphabet)
