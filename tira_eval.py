@@ -6,7 +6,7 @@
 import json
 import sys
 from scorer import evaluate
-from validator import validate_relation_list
+from validator import validate_relation_list, identify_language
 
 def write_proto_text(key, value, f):
     f.write('measure {\n key: "%s" \n value: "%s"\n}\n' % (key ,round(value, 4)))
@@ -49,7 +49,9 @@ def main(args):
 
     gold_relations = [json.loads(x) for x in open('%s/relations.json' % input_dataset)]
     predicted_relations = [json.loads(x) for x in open('%s/output.json' % input_run)]
-    all_correct = validate_relation_list(predicted_relations)
+
+    language = identify_language(gold_relations)
+    all_correct = validate_relation_list(predicted_relations, language)
     if not all_correct:
         exit(1)
 

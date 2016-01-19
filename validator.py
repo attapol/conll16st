@@ -122,6 +122,23 @@ def check_span(span):
     if not isinstance(span['TokenList'], list):
         raise TypeError('TokenList field must a list of token indices')
 
+def identify_language(g_relation_list):
+    """Identify the language of the relation list based on senses
+    """
+    english = 0.0
+    chinese = 0.0
+    for relation in g_relation_list:
+        sense = relation['Sense'][0]
+        if sense in EN_SENSES:
+            english += 1
+        elif sense in ZH_SENSES:
+            chinese += 1
+    if english > chinese:
+        return 'en'
+    else:
+        return 'zh'
+
+    
 if __name__ == '__main__':
     parser = argparse.ArgumentParser('System output format validator')
     parser.add_argument('language', choices=['en','zh'], help='language of the output')
