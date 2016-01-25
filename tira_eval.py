@@ -6,6 +6,7 @@
 import json
 import sys
 from scorer import evaluate
+from partial_scorer import partial_evaluate
 from validator import validate_relation_list, identify_language
 
 def write_proto_text(key, value, f):
@@ -37,10 +38,29 @@ def write_results(prefix, result_tuple, output_file):
     write_proto_text('%s Arg 1 Arg2 extraction recall' % prefix, r, output_file)
     write_proto_text('%s Arg 1 Arg2 extraction f1' % prefix, f, output_file)
 
-    p, r, f = sense_cm.compute_average_prf()
-    write_proto_text('%s Sense precision' % prefix, p, output_file)
-    write_proto_text('%s Sense recall' % prefix, r, output_file)
-    write_proto_text('%s Sense f1' % prefix, f, output_file)
+def write_partial_match_results(prefix, result_tuple, output_file):
+    arg1_match_prf, arg2_match_prf, entire_relation_match_prf, parser_prf = result_tuple
+
+    precision, recall, f1 = parser_prf
+    write_proto_text('%s Parser precision' % prefix, precision, output_file)
+    write_proto_text('%s Parser recall' % prefix, recall, output_file)
+    write_proto_text('%s Parser f1' % prefix, f1, output_file)
+
+    precision, recall, f1 = arg1_match_prf
+    write_proto_text('%s Arg1 extraction precision' % prefix, precision, output_file)
+    write_proto_text('%s Arg1 extraction recall' % prefix, recall, output_file)
+    write_proto_text('%s Arg1 extraction f1' % prefix, f1, output_file)
+
+    precision, recall, f1 = arg2_match_prf
+    write_proto_text('%s Arg2 extraction precision' % prefix, precision, output_file)
+    write_proto_text('%s Arg2 extraction recall' % prefix, recall, output_file)
+    write_proto_text('%s Arg2 extraction f1' % prefix, f1, output_file)
+
+    precision, recall, f1 = entire_relation_match_prf
+    write_proto_text('%s Arg 1 Arg2 extraction precision' % prefix, precision, output_file)
+    write_proto_text('%s Arg 1 Arg2 extraction recall' % prefix, recall, output_file)
+    write_proto_text('%s Arg 1 Arg2 extraction f1' % prefix, f1, output_file)
+
 
 def main(args):
     input_dataset = args[1]
@@ -70,6 +90,13 @@ def main(args):
     non_explicit_predicted_relations = [x for x in predicted_relations if x['Type'] != 'Explicit']
     write_results('Non-explicit only', \
         evaluate(non_explicit_gold_relations, non_explicit_predicted_relations), output_file)
+
+    write_partial_match_results('All (partial match)', \
+        partial_evaluate(gold_relations, predicted_relations, 0.7), output_file)
+    write_partial_match_results('Explicit only (partial match)', \
+        partial_evaluate(explicit_gold_relations, explicit_predicted_relations, 0.7), output_file)
+    write_partial_match_results('Non-explicit only (partial match)', \
+        partial_evaluate(non_explicit_gold_relations, non_explicit_predicted_relations, 0.7), output_file)
 
     output_file.close()
 

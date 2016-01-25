@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 """Scorer for partial argument match
 
 """
@@ -177,6 +179,7 @@ def evaluate_sense(relation_pairs, valid_senses):
 def main():
     parser = argparse.ArgumentParser(
         description="Evaluate system's output against the gold standard based on partial matches")
+    parser.add_argument('--cutoff', help='Cutoff value for partial matching', default=0.7, type=float)
     parser.add_argument('gold', help='Gold standard file')
     parser.add_argument('predicted', help='System output file')
     args = parser.parse_args()
@@ -184,19 +187,19 @@ def main():
     predicted_list = [json.loads(x) for x in open(args.predicted)]
     print '\n================================================'
     print 'Evaluation for all discourse relations'
-    partial_evaluate(gold_list, predicted_list, 0.7)
+    partial_evaluate(gold_list, predicted_list, args.cutoff)
 
     print '\n================================================'
     print 'Evaluation for explicit discourse relations only'
     explicit_gold_list = [x for x in gold_list if x['Type'] == 'Explicit']
     explicit_predicted_list = [x for x in predicted_list if x['Type'] == 'Explicit']
-    partial_evaluate(explicit_gold_list, explicit_predicted_list, 0.7)
+    partial_evaluate(explicit_gold_list, explicit_predicted_list, args.cutoff)
 
     print '\n================================================'
     print 'Evaluation for non-explicit discourse relations only (Implicit, EntRel, AltLex)'
     non_explicit_gold_list = [x for x in gold_list if x['Type'] != 'Explicit']
     non_explicit_predicted_list = [x for x in predicted_list if x['Type'] != 'Explicit']
-    partial_evaluate(non_explicit_gold_list, non_explicit_predicted_list, 0.7)
+    partial_evaluate(non_explicit_gold_list, non_explicit_predicted_list, args.cutoff)
 
 if __name__ == '__main__':
     main()
