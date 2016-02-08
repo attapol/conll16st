@@ -152,16 +152,18 @@ def evaluate_sense(gold_list, predicted_list):
             _link_gold_predicted(gold_list, predicted_list, spans_exact_matching)
 
     for i, gold_relation in enumerate(gold_list):
-        if i in gold_to_predicted_map:
-            predicted_sense = gold_to_predicted_map[i]['Sense'][0]
-            if predicted_sense in gold_relation['Sense']:
-                sense_cm.add(predicted_sense, predicted_sense)
+        gold_sense = gold_relation['Sense'][0]
+        if gold_sense in valid_senses:
+            if i in gold_to_predicted_map:
+                predicted_sense = gold_to_predicted_map[i]['Sense'][0]
+                if predicted_sense in gold_relation['Sense']:
+                    sense_cm.add(predicted_sense, predicted_sense)
+                else:
+                    if not sense_cm.alphabet.has_label(predicted_sense):
+                        predicted_sense = ConfusionMatrix.NEGATIVE_CLASS
+                    sense_cm.add(predicted_sense, gold_sense)
             else:
-                if not sense_cm.alphabet.has_label(predicted_sense):
-                    predicted_sense = ConfusionMatrix.NEGATIVE_CLASS
-                sense_cm.add(predicted_sense, gold_relation['Sense'][0])
-        else:
-            sense_cm.add(ConfusionMatrix.NEGATIVE_CLASS, gold_relation['Sense'][0])
+                sense_cm.add(ConfusionMatrix.NEGATIVE_CLASS, gold_sense)
 
     for i, predicted_relation in enumerate(predicted_list):
         if i not in predicted_to_gold_map:
