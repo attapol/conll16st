@@ -91,10 +91,13 @@ def main(args):
     write_results('Non-explicit only', \
         evaluate(non_explicit_gold_relations, non_explicit_predicted_relations), output_file)
 
+    print '\nPartial Evaluation for all discourse relations'
     write_partial_match_results('All (partial match)', \
         partial_evaluate(gold_relations, predicted_relations, 0.7), output_file)
+    print '\nPartial Evaluation for explicit discourse relations'
     write_partial_match_results('Explicit only (partial match)', \
         partial_evaluate(explicit_gold_relations, explicit_predicted_relations, 0.7), output_file)
+    print '\nPartial Evaluation for non-explicit discourse relations only (Implicit, EntRel, AltLex)'
     write_partial_match_results('Non-explicit only (partial match)', \
         partial_evaluate(non_explicit_gold_relations, non_explicit_predicted_relations, 0.7), output_file)
 

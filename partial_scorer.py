@@ -17,6 +17,7 @@ from conn_head_mapper import ConnHeadMapper
 def partial_evaluate(gold_list, predicted_list, partial_match_cutoff):
     """Evaluate the parse output with partial matching for arguments
     """
+    print 'PARTIAL EVALUATION - For diagnostics only and not for ranking'
     print 'Aligning relations - This will time out after 120 seconds'
     arg1_alignment, arg2_alignment, relation_alignment = \
         aligner.align_relations(gold_list, predicted_list, partial_match_cutoff)
@@ -150,11 +151,14 @@ def compute_prf(total_gold, total_predicted, total_correct):
 
 def evaluate_sense(relation_pairs, valid_senses):
     sense_alphabet = Alphabet()
-    for g_relation, _ in relation_pairs:
-        if g_relation is not None:
-            sense = g_relation['Sense'][0]
-            if sense in valid_senses:
-                sense_alphabet.add(sense)
+    #for g_relation, _ in relation_pairs:
+        #if g_relation is not None:
+            #sense = g_relation['Sense'][0]
+            #if sense in valid_senses:
+                #sense_alphabet.add(sense)
+    for sense in valid_senses:
+        sense_alphabet.add(sense)
+
     sense_alphabet.add(ConfusionMatrix.NEGATIVE_CLASS)
     sense_alphabet.growing = False
 
