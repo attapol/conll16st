@@ -93,6 +93,8 @@ def span_exact_matching(gold_span, predicted_span):
     """
     gold_docID = gold_span[0]
     predicted_docID = predicted_span[0]
+    if gold_docID != predicted_docID:
+        return False
     gold_token_indices = [x[2] for x in gold_span[1]]
     predicted_token_indices = predicted_span[1]
     return gold_docID == predicted_docID and gold_token_indices == predicted_token_indices
@@ -203,11 +205,11 @@ def compute_binary_eval_metric(gold_list, predicted_list, matching_fn):
                 found_match = True
                 break
         if not found_match:
-            cm.add('yes', 'no')
+            cm.add('no', 'yes')
     # Predicted span that does not match with any
     for matched in matched_predicted:
         if not matched:
-            cm.add('no', 'yes')
+            cm.add('yes', 'no')
     return cm
 
 
