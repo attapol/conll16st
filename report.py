@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 """Generate tsv format files from a directory of result zip files 
 
 CoNLL 2016 Shared Task results are downloaded from TIRA and sent to
